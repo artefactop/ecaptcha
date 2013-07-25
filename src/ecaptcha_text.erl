@@ -7,8 +7,6 @@
 
 -define(CryptKey, <<"e5b3ac76-e389-4f21-8fc7-5548cdee72fa">>). %FIXME configure key
 
-%%TODO init
-
 -spec new(Length::non_neg_integer()) -> {CodeHex::term(),BinPng::binary()}.
 
 new(Length) when Length < 1 ->
