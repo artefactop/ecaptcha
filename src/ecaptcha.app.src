@@ -8,6 +8,9 @@
                   stdlib,
                   ejwt
                  ]},
-  {mod, { ecaptcha_app, []}},
+  {modules, [
+    ecaptcha_image,
+    ecaptcha_text
+  ]},
   {env, []}
  ]}.
