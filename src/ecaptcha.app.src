@@ -1,0 +1,13 @@
+{application, ecaptcha,
+ [
+  {description, "Library for provide captchas"},
+  {vsn, git},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  ejwt
+                 ]},
+  {mod, { ecaptcha_app, []}},
+  {env, []}
+ ]}.
