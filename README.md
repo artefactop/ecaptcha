@@ -43,6 +43,8 @@ $ rebar eunit
 
 ### `check/2`
 
+When a human select the an image, you check if is correct sending Token and the position selected of the images list.
+
 ```-spec check(JWT::binary(), Position::non_neg_integer()) -> boolean().```
 
 ```erlang
