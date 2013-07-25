@@ -14,7 +14,7 @@
 new(NumberElements, Lang) when NumberElements < 2 ->
     new(2, Lang);
 
-new(NumberElements, Lang) -> %%TODO return [{token,TOKEN},{text","select the cat"}, {"images",[<<bin1>>, <<bin2>>, <<bin3>>]}] 
+new(NumberElements, Lang) ->
     Base = code:priv_dir(ecaptcha),
     case file:consult(Base ++ "/captcha.config") of 
         {ok, [Config]} -> 
@@ -32,7 +32,7 @@ new(NumberElements, Lang) -> %%TODO return [{token,TOKEN},{text","select the cat
             end , [], List),
             Rand = random:uniform(length(List)),
             Text = get_text(Lang, proplists:get_value(<<"lang">>, lists:nth(Rand, List))), 
-            Token = ejwt:encode([{<<"valid">>, Rand}], ?CryptKey),
+            Token = ejwt:encode([{<<"valid">>, Rand}, {<<"noise">>, random:uniform(1000000) }], ?CryptKey),
             [{<<"token">>, Token}, {<<"text">>, Text}, {<<"images">>, BinImages}];
         Error -> Error 
     end.
