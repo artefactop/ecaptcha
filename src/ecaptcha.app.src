@@ -2,7 +2,7 @@
  [
   {description, "Library for provide captchas"},
   {vsn, git},
-  {registered, []},
+  {registered, [ecaptcha]},
   {applications, [
                   kernel,
                   stdlib,
@@ -12,5 +12,5 @@
     ecaptcha_image,
     ecaptcha_text
   ]},
-  {env, []}
+  {env, [{<<"CryptKey">>, <<"e5b3ac76-e389-4f21-8fc7-5548cdee72fa">>}]}
  ]}.

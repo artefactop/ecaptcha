@@ -5,8 +5,6 @@
     check/2
     ]).
 
--define(CryptKey, <<"e5b3ac76-e389-4f21-8fc7-5548cdee72fa">>). %FIXME configure key, get_env
-
 -define(GRAVITY, ["NorthWest", "North", "NorthEast", "West", "Center", "East", "SouthWest", "South", "SouthEast"]).
 
 -spec new(NumberElements::non_neg_integer(), Lang::binary()) -> list().
@@ -18,10 +16,8 @@ new(NumberElements, Lang) ->
     Base = code:priv_dir(ecaptcha),
     case file:consult(Base ++ "/captcha.config") of 
         {ok, [Config]} -> 
-            lager:debug("Config captcha ~p",[Config]),
             WM = proplists:get_value(<<"watermark">>, Config),
             Images = proplists:get_value(<<"images">>, Config), 
-            lager:debug("Images captcha ~p",[Images]),
             List = random(NumberElements, Images),
             lager:debug("List captcha ~p",[List]),
             BinImages = lists:foldl(fun(X, Acc) -> 
@@ -32,7 +28,8 @@ new(NumberElements, Lang) ->
             end , [], List),
             Rand = random:uniform(length(List)),
             Text = get_text(Lang, proplists:get_value(<<"lang">>, lists:nth(Rand, List))), 
-            Token = ejwt:encode([{<<"valid">>, Rand}, {<<"noise">>, random:uniform(1000000) }], ?CryptKey),
+            {ok, CryptKey} = application:get_env(ecaptcha, <<"CryptKey">>),
+            Token = ejwt:encode([{<<"valid">>, Rand}, {<<"noise">>, random:uniform(1000000) }], CryptKey),
             [{<<"token">>, Token}, {<<"text">>, Text}, {<<"images">>, BinImages}];
         Error -> Error 
     end.
@@ -49,9 +46,8 @@ get_text(Lang, List) ->
 apply_watermark(Watermark, Image) ->
     FileName = lists:flatmap(fun(Item) -> integer_to_list(Item) end, tuple_to_list(os:timestamp())),
     File = io_lib:format("/tmp/~s.png",[FileName]),
-    lager:debug("Filename ~p",[FileName]),
+
     [Gv] = random(1, ?GRAVITY),
-    lager:debug("composite -dissolve 50% -gravity ~s -quality 100 \\( ~s -resize 50% \\) ~s ~s", [Gv, Watermark, Image, File]),
 
     Cmd = io_lib:format("composite -dissolve 50% -gravity ~s -quality 100 \\( ~s -resize 50% \\) ~s ~s", [Gv, Watermark, Image, File]),
     os:cmd(Cmd),
@@ -63,14 +59,14 @@ apply_watermark(Watermark, Image) ->
 -spec check(JWT::binary(), Position::non_neg_integer()) -> boolean().
 
 check(JWT, Position) ->
-    Payload = ejwt:decode(JWT, ?CryptKey), 
+    {ok, CryptKey} = application:get_env(ecaptcha, <<"CryptKey">>), 
+    Payload = ejwt:decode(JWT, CryptKey), 
     case proplists:get_value(<<"valid">>, Payload) of 
         Position ->
             true;
         _ ->
             false 
     end. 
-
 
 -spec random(N::non_neg_integer(), List::list()) -> list().
 

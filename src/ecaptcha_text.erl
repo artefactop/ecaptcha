@@ -5,9 +5,7 @@
     check/2
     ]).
 
--define(CryptKey, <<"e5b3ac76-e389-4f21-8fc7-5548cdee72fa">>). %FIXME configure key
-
--spec new(Length::non_neg_integer()) -> {CodeHex::term(),BinPng::binary()}.
+-spec new(Length::non_neg_integer()) -> {Token::term(), BinPng::binary()}.
 
 new(Length) when Length < 1 ->
     new(1);
@@ -23,20 +21,22 @@ new(Length) ->
     {ok, BinPng} = file:read_file(File),
     file:delete(File),
 
-    Sha = crypto:hmac(sha, ?CryptKey, integer_to_list(lists:sum(Code)) ++ Code), %%TODO use JWT
-    CodeHex = mochihex:to_hex(Sha), %%FIXME dont user mochi
-    {CodeHex, BinPng}.
+    {ok, CryptKey} = application:get_env(ecaptcha, <<"CryptKey">>), 
 
-check(CodeHex, Code) ->
-    Sha = mochihex:to_bin(CodeHex), %%FIXME dont user mochi
-    CryptKey = ets:first(captcha),
+    Token = ejwt:encode([{<<"code">>, erlang:list_to_binary(Code)}, {<<"noise">>, random:uniform(1000000)} ], CryptKey), 
+    {Token, base64:encode(BinPng)}.
 
-    case crypto:hmac(sha, CryptKey, integer_to_list(lists:sum(Code)) ++ Code) of
-        Sha ->
+-spec check(JWT::binary(), Code::binary()) -> boolean().
+
+check(JWT, Code) -> 
+    {ok, CryptKey} = application:get_env(ecaptcha, <<"CryptKey">>), 
+    Payload = ejwt:decode(JWT, CryptKey), 
+    case proplists:get_value(<<"code">>, Payload) of 
+        Code ->
             true;
         _ ->
-            false
-    end.
+            false 
+    end. 
 
 generate_rand(Length) ->
     {A1,A2,A3} = os:timestamp(),
