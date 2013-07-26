@@ -12,6 +12,7 @@ Library for provide captchas
 ## index ##
 
 * [quickstart](#quickstart)
+* [configuration](#configuration)
 * [ecaptcha_text](#ecaptcha_text)
   - [`new/1`](#new)
   - [`check/2`](#check)
@@ -26,9 +27,13 @@ Library for provide captchas
 To build the library and run tests
 
 ```bash
-$ rebar compile
-$ rebar eunit
+$ rebar get-deps compile
+$ rebar eunit skip_deps=true
 ```
+
+## configuration
+
+Copy the images used for captcha at `priv/images`, exist one special image for watermark `watermark.png` is required. Setup the images config at `priv/captcha.config`.
 
 ## ecaptcha_image
 

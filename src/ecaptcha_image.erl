@@ -27,7 +27,7 @@ new(NumberElements, Lang) ->
             BinImages = lists:foldl(fun(X, Acc) -> 
                 lager:debug("X ~p",[X]),
                 I = proplists:get_value(<<"img">>, X),
-                BinPng = apply_watermark(<<(list_to_binary(Base))/binary,"/captcha_images/",WM/binary>>, <<(list_to_binary(Base))/binary,"/captcha_images/", I/binary>>),
+                BinPng = apply_watermark(<<(list_to_binary(Base))/binary,"/images/",WM/binary>>, <<(list_to_binary(Base))/binary,"/images/", I/binary>>),
                 [ BinPng | Acc ] 
             end , [], List),
             Rand = random:uniform(length(List)),
