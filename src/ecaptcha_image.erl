@@ -61,6 +61,7 @@ apply_watermark(Watermark, Image) ->
 check(JWT, Position) ->
     {ok, CryptKey} = application:get_env(ecaptcha, <<"CryptKey">>), 
     Payload = ejwt:decode(JWT, CryptKey), 
+    lager:debug("Payload ~p",[Payload]),
     case proplists:get_value(<<"valid">>, Payload) of 
         Position ->
             true;
