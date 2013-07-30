@@ -24,10 +24,10 @@ new(NumberElements, Lang) ->
                 lager:debug("X ~p",[X]),
                 I = proplists:get_value(<<"img">>, X),
                 BinPng = apply_watermark(<<(list_to_binary(Base))/binary,"/images/",WM/binary>>, <<(list_to_binary(Base))/binary,"/images/", I/binary>>),
-                [ BinPng | Acc ] 
+                [ Acc | BinPng ] 
             end , [], List),
             Rand = random:uniform(length(List)),
-            Text = get_text(Lang, proplists:get_value(<<"lang">>, lists:nth(Rand, List))), 
+            Text = get_text(Lang, proplists:get_value(<<"lang">>, lists:nth(Rand, List))),
             {ok, CryptKey} = application:get_env(ecaptcha, <<"CryptKey">>),
             Token = ejwt:encode([{<<"valid">>, Rand}, {<<"noise">>, random:uniform(1000000) }], CryptKey),
             [{<<"token">>, Token}, {<<"text">>, Text}, {<<"images">>, BinImages}];
