@@ -6,7 +6,7 @@
     ]).
 
 -define(GRAVITY, ["NorthWest", "North", "NorthEast", "West", "Center", "East", "SouthWest", "South", "SouthEast"]).
--define(EXPIRATION_MILLISECONDS, 600001). %% 10 minutes
+-define(EXPIRATION_SECONDS, 600). %% 10 minutes
 
 -spec new(NumberElements::non_neg_integer(), Lang::binary()) -> list().
 
@@ -30,7 +30,7 @@ new(NumberElements, Lang) ->
             Rand = random:uniform(length(List)),
             Text = get_text(Lang, proplists:get_value(<<"lang">>, lists:nth(Rand, List))),
             {ok, CryptKey} = application:get_env(ecaptcha, <<"CryptKey">>),
-            Token = ejwt:encode([{<<"valid">>, Rand}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_ms_timestamp() + ?EXPIRATION_MILLISECONDS}], CryptKey),
+            Token = ejwt:encode([{<<"valid">>, Rand}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_s_timestamp() + ?EXPIRATION_SECONDS}], CryptKey),
             [{<<"token">>, Token}, {<<"text">>, Text}, {<<"images">>, BinImages}];
         Error -> Error 
     end.
@@ -99,15 +99,15 @@ delete_element(N,L) -> %% change for erlang:delete_element
     lists:filter(fun(X) -> X =/= Ele end, L). %%FIXME remove all elements not only the first ocurrence 
 
 
-% gets a timestamp in ms from the epoch
-get_ms_timestamp() ->
-    {Mega,Sec,Micro} = os:timestamp(),
-    (Mega*1000000+Sec)*1000000+Micro.
+% gets a timestamp in s from the epoch
+get_s_timestamp() ->
+    {Mega,Sec,_} = os:timestamp(),
+    (Mega*1000000+Sec).
 
 -spec has_expired(Timestamp::non_neg_integer()) -> boolean().
 
 has_expired(Timestamp) ->
-    Diff = get_ms_timestamp() - Timestamp,
+    Diff = get_s_timestamp() - Timestamp,
     if Diff > 0  -> true;
         true -> false
     end. 

@@ -2,7 +2,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -define(CryptKey, <<"e5b3ac76-e389-4f21-8fc7-5548cdee72fa">>).
--define(EXPIRATION_MILLISECONDS, 600001). %% 10 minutes and 1 millisecond
+-define(EXPIRATION_SECONDS, 600001). %% 10 minutes and 1 millisecond
 
 -define(meck_lager(), begin
     meck:new(lager),
@@ -51,13 +51,14 @@ new_captcha_images_test() ->
     ?assertEqual(true, Test).
 
 check_captcha_images_test() ->
-    P = [{<<"valid">>, 0}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_ms_timestamp() + ?EXPIRATION_MILLISECONDS}],
+    P = [{<<"valid">>, 0}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_s_timestamp() + ?EXPIRATION_SECONDS}],
     JWT = ejwt:encode(P, ?CryptKey), 
     Test = ecaptcha_image:check(JWT, 0), 
     ?assertEqual(true, Test).
 
 check_captcha_images_false_test() ->
-    P = [{<<"valid">>, 0}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_ms_timestamp() }], %% old timestamp
+    P = [{<<"valid">>, 0}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_s_timestamp() }], %% old timestamp
+    timer:sleep(1001),
     JWT = ejwt:encode(P, ?CryptKey), 
     Test = ecaptcha_image:check(JWT, 0), 
     ?assertEqual(false, Test).
@@ -80,6 +81,6 @@ check_captcha_text_test() ->
     ?assertEqual(true, Test).
 
 % gets a timestamp in ms from the epoch
-get_ms_timestamp() ->
-    {Mega,Sec,Micro} = os:timestamp(),
-    (Mega*1000000+Sec)*1000000+Micro.
+get_s_timestamp() ->
+    {Mega,Sec,_} = os:timestamp(),
+    (Mega*1000000+Sec).
