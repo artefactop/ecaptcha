@@ -51,13 +51,13 @@ new_captcha_images_test() ->
     ?assertEqual(true, Test).
 
 check_captcha_images_test() ->
-    P = [{<<"valid">>, 0}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_ms_timestamp()}],
+    P = [{<<"valid">>, 0}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_ms_timestamp() + ?EXPIRATION_MILLISECONDS}],
     JWT = ejwt:encode(P, ?CryptKey), 
     Test = ecaptcha_image:check(JWT, 0), 
     ?assertEqual(true, Test).
 
 check_captcha_images_false_test() ->
-    P = [{<<"valid">>, 0}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_ms_timestamp() - ?EXPIRATION_MILLISECONDS }], %% old timestamp
+    P = [{<<"valid">>, 0}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_ms_timestamp() }], %% old timestamp
     JWT = ejwt:encode(P, ?CryptKey), 
     Test = ecaptcha_image:check(JWT, 0), 
     ?assertEqual(false, Test).

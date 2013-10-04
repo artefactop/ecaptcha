@@ -6,7 +6,7 @@
     ]).
 
 -define(GRAVITY, ["NorthWest", "North", "NorthEast", "West", "Center", "East", "SouthWest", "South", "SouthEast"]).
--define(EXPIRATION_MILLISECONDS, 600000). %% 10 minutes
+-define(EXPIRATION_MILLISECONDS, 600001). %% 10 minutes
 
 -spec new(NumberElements::non_neg_integer(), Lang::binary()) -> list().
 
@@ -30,7 +30,7 @@ new(NumberElements, Lang) ->
             Rand = random:uniform(length(List)),
             Text = get_text(Lang, proplists:get_value(<<"lang">>, lists:nth(Rand, List))),
             {ok, CryptKey} = application:get_env(ecaptcha, <<"CryptKey">>),
-            Token = ejwt:encode([{<<"valid">>, Rand}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_ms_timestamp()}], CryptKey),
+            Token = ejwt:encode([{<<"valid">>, Rand}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_ms_timestamp() + ?EXPIRATION_MILLISECONDS}], CryptKey),
             [{<<"token">>, Token}, {<<"text">>, Text}, {<<"images">>, BinImages}];
         Error -> Error 
     end.
@@ -108,6 +108,6 @@ get_ms_timestamp() ->
 
 has_expired(Timestamp) ->
     Diff = get_ms_timestamp() - Timestamp,
-    if (?EXPIRATION_MILLISECONDS - Diff) > 0  -> false;
-        true -> true
+    if Diff > 0  -> true;
+        true -> false
     end. 
