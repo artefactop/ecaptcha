@@ -60,19 +60,29 @@ apply_watermark(Watermark, Image) ->
 -spec check(JWT::binary(), Position::non_neg_integer()) -> boolean().
 
 check(JWT, Position) ->
-    {ok, CryptKey} = application:get_env(ecaptcha, <<"CryptKey">>), 
-    Payload = ejwt:decode(JWT, CryptKey), 
-    lager:debug("Payload ~p",[Payload]),
-    case has_expired(proplists:get_value(<<"expiration_date">>, Payload)) of 
-        false ->
-            case proplists:get_value(<<"valid">>, Payload) of 
-                Position ->
-                    true;
-                _ ->
-                    false 
+    case cache:get(JWT) of 
+        none ->
+            {ok, CryptKey} = application:get_env(ecaptcha, <<"CryptKey">>), 
+            Payload = ejwt:decode(JWT, CryptKey), 
+            lager:debug("Payload ~p",[Payload]),
+            case has_expired(proplists:get_value(<<"expiration_date">>, Payload)) of 
+                false ->
+                    case proplists:get_value(<<"valid">>, Payload) of 
+                        Position ->
+                            cache:put_ttl(JWT, undefined, ?EXPIRATION_SECONDS),
+                            true;
+                        _ ->
+                            cache:put_ttl(JWT, undefined, ?EXPIRATION_SECONDS),
+                            false 
+                    end;
+                _ -> 
+                    cache:put_ttl(JWT, undefined, ?EXPIRATION_SECONDS),
+                    false
             end;
-        _ -> false
-    end. 
+        _ ->
+            cache:put_ttl(JWT, undefined, ?EXPIRATION_SECONDS),
+            false
+    end.
 
 -spec random(N::non_neg_integer(), List::list()) -> list().
 

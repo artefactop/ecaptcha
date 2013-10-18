@@ -23,7 +23,8 @@ setup_test_() ->
             new_captcha_images_test(),
             check_captcha_images_test(),
             new_captcha_text_test(),
-            check_captcha_text_test()
+            check_captcha_text_test(),
+            check_captcha_images_in_cache()
         ] end
     }.
 
@@ -62,6 +63,14 @@ check_captcha_images_false_test() ->
     JWT = ejwt:encode(P, ?CryptKey), 
     Test = ecaptcha_image:check(JWT, 0), 
     ?assertEqual(false, Test).
+
+check_captcha_images_in_cache() ->
+    P = [{<<"valid">>, 0}, {<<"noise">>, random:uniform(1000000)}, {<<"expiration_date">>, get_s_timestamp() + ?EXPIRATION_SECONDS}],
+    JWT = ejwt:encode(P, ?CryptKey), 
+    Test = ecaptcha_image:check(JWT, 0), 
+    ?assertEqual(true, Test), 
+    Test2 = ecaptcha_image:check(JWT, 0), 
+    ?assertEqual(false, Test2).
 
 new_captcha_text_test() ->
     Test = case ecaptcha_text:new(5) of 

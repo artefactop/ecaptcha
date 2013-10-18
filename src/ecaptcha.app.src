@@ -6,7 +6,8 @@
   {applications, [
                   kernel,
                   stdlib,
-                  ejwt
+                  ejwt,
+                  cache
                  ]},
   {modules, [
     ecaptcha_image,
